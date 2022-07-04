@@ -21,9 +21,28 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.codelab.basiclayouts.ui.theme.MySootheTheme
@@ -41,22 +60,96 @@ fun SearchBar(
     modifier: Modifier = Modifier
 ) {
     // Implement composable here
+    Surface(
+        modifier = modifier
+            .padding(horizontal = 8.dp)
+    ) {
+        TextField(
+            value = "",
+            onValueChange = {},
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
+            },
+            placeholder = {
+                Text(
+                    text = stringResource(id = R.string.placeholder_search)
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = MaterialTheme.colors.surface
+            ),
+            modifier = Modifier
+                .heightIn(min = 56.dp)
+                .fillMaxWidth()
+        )
+    }
 }
 
 // Step: Align your body - Alignment
 @Composable
 fun AlignYourBodyElement(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @DrawableRes image: Int,
+    @StringRes text: Int
 ) {
     // Implement composable here
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(88.dp)
+                .clip(CircleShape)
+
+        )
+        Text(
+            text = stringResource(text),
+            modifier = Modifier
+                .paddingFromBaseline(
+                    top = 24.dp,
+                    bottom = 8.dp
+                ),
+            style = MaterialTheme.typography.h3
+        )
+    }
 }
 
 // Step: Favorite collection card - Material Surface
 @Composable
 fun FavoriteCollectionCard(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @DrawableRes image: Int,
+    @StringRes text: Int
 ) {
     // Implement composable here
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.width(192.dp)
+        ) {
+            Image(
+                painter = painterResource(image),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(56.dp)
+            )
+            Text(
+                text = stringResource(text),
+                style = MaterialTheme.typography.h3,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+    }
 }
 
 // Step: Align your body row - Arrangements
@@ -65,6 +158,21 @@ fun AlignYourBodyRow(
     modifier: Modifier = Modifier
 ) {
     // Implement composable here
+    LazyRow(
+        modifier = modifier,
+        contentPadding = PaddingValues(
+            horizontal = 8.dp,
+            vertical = 4.dp
+        ),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(alignYourBodyData) { item ->
+            AlignYourBodyElement(
+                image = item.drawable,
+                text = item.text
+            )
+        }
+    }
 }
 
 // Step: Favorite collections grid - LazyGrid
@@ -73,13 +181,41 @@ fun FavoriteCollectionsGrid(
     modifier: Modifier = Modifier
 ) {
     // Implement composable here
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp),
+        modifier = modifier
+            .height(130.dp)
+
+    ) {
+        items(favoriteCollectionsData) { item ->
+            FavoriteCollectionCard(image = item.drawable, text = item.text)
+        }
+    }
+
 }
 
 // Step: Home section - Slot APIs
 @Composable
 fun HomeSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @StringRes stringRes: Int,
+    content: @Composable () -> Unit,
 ) {
+    Column(modifier) {
+        Text(
+            text = stringResource(stringRes),
+            modifier = Modifier
+                .paddingFromBaseline(
+                    top = 40.dp,
+                    bottom = 8.dp
+                )
+                .padding(start = 8.dp)
+        )
+        content()
+    }
     // Implement composable here
 }
 
@@ -87,18 +223,69 @@ fun HomeSection(
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     // Implement composable here
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+        Spacer(modifier = Modifier.height(16.dp))
+        SearchBar()
+        HomeSection(stringRes = R.string.align_your_body) {
+            AlignYourBodyRow()
+        }
+        HomeSection(stringRes = R.string.favorite_collections) {
+            FavoriteCollectionsGrid()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+    }
 }
 
 // Step: Bottom navigation - Material
 @Composable
-private fun SootheBottomNavigation(modifier: Modifier = Modifier) {
+private fun SootheBottomNavigation(
+    modifier: Modifier = Modifier
+) {
     // Implement composable here
+    BottomNavigation(
+        modifier = modifier,
+        backgroundColor = MaterialTheme.colors.background
+    ) {
+        BottomNavigationItem(
+            selected = true,
+            onClick = {},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Spa, contentDescription = null
+                )
+            },
+            label = {
+                Text(text = stringResource(id = R.string.bottom_navigation_home))
+            }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = {},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle, contentDescription = null
+                )
+            },
+            label = {
+                Text(text = stringResource(id = R.string.bottom_navigation_home))
+            }
+        )
+    }
 }
 
 // Step: MySoothe App - Scaffold
 @Composable
 fun MySootheApp() {
     // Implement composable here
+    Scaffold(bottomBar = {
+        SootheBottomNavigation()
+    }) { paddingValues ->
+        HomeScreen(
+            modifier = Modifier
+                .padding(paddingValues)
+        )
+    }
 }
 
 private val alignYourBodyData = listOf(
@@ -135,7 +322,9 @@ fun SearchBarPreview() {
 fun AlignYourBodyElementPreview() {
     MySootheTheme {
         AlignYourBodyElement(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
+            image = R.drawable.ab1_inversions,
+            text = R.string.ab1_inversions
         )
     }
 }
@@ -145,7 +334,9 @@ fun AlignYourBodyElementPreview() {
 fun FavoriteCollectionCardPreview() {
     MySootheTheme {
         FavoriteCollectionCard(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
+            text = R.string.fc2_nature_meditations,
+            image = R.drawable.fc2_nature_meditations,
         )
     }
 }
@@ -165,7 +356,11 @@ fun AlignYourBodyRowPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFF0EAE2)
 @Composable
 fun HomeSectionPreview() {
-    MySootheTheme { HomeSection() }
+    MySootheTheme {
+        HomeSection(stringRes = R.string.align_your_body) {
+            AlignYourBodyRow()
+        }
+    }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF0EAE2)
